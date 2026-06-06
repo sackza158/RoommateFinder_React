@@ -10,6 +10,8 @@ function App() {
   const [roomtype, setRoomtype] = useState("")
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [image , setImage] = useState("");
+  const [selectedPost,setSelectedPost] = useState(null);
 
   //ทำทุกครั้งที่ Posts เปลี่ยน
   useEffect(() => {    
@@ -30,6 +32,22 @@ function App() {
     }
   }, []);
 
+  function handleImageChange(event){
+    const file = event.target.files[0];
+
+    if(!file){
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () =>{
+      setImage(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
 
   function addpost(){
 
@@ -48,7 +66,8 @@ function App() {
       title: title,
       price: price,
       description : description,
-      roomtype : roomtype
+      roomtype : roomtype,
+      image : image
     };
 
     if(editingId !== null){
@@ -61,7 +80,8 @@ function App() {
               title: title,
               price: price,
               description : description,
-              roomtype : roomtype
+              roomtype : roomtype,
+              image : image
             };
           }
 
@@ -74,6 +94,7 @@ function App() {
       setPrice("");
       setDescription("");
       setRoomtype("");
+      setImage("");
       return;
   
     }
@@ -83,6 +104,7 @@ function App() {
     setPrice("");
     setDescription("");
     setRoomtype("");
+    setImage("");
   }
 
   function deletePost(id){
@@ -97,6 +119,7 @@ function App() {
     setDescription(post.description);
     setEditingId(post.id);
     setRoomtype(post.roomtype);
+    setImage(post.image);
   }
 
   function sortPriceLower(){
@@ -145,10 +168,15 @@ function App() {
       <option value="หอพักหญิง">หอพักหญิง</option>
       </select>
 
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+      />
+
       <button onClick={addpost}>
         {editingId === null ? "เพิ่มโพสต์" : "บันทึกแก้ไข"}
       </button>
-
 
       <button onClick={sortPriceLower}>
         เรียงราคา จากต่ำไปสูง
@@ -184,8 +212,38 @@ function App() {
             post={post}
             onEdit={editPost}
             onDelete={deletePost}
+            onView={setSelectedPost}
           /> 
         ) ) }
+
+        {selectedPost && (
+          <div className="modal-overlay">
+
+            <div className="modal">
+              
+              {selectedPost.image && (
+                <img 
+                  src={selectedPost.image}
+                  alt="room"
+                  className="room-image"
+                />
+              )}
+
+              <h2>{selectedPost.title}</h2>
+              <p>{selectedPost.price} บาท/เดือน</p>
+              <p>{selectedPost.roomtype}</p>
+              <p>{selectedPost.description}</p>
+
+              <button onClick={() => setSelectedPost(null)}>
+                 ปิด
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
     </div>
   );
 }
