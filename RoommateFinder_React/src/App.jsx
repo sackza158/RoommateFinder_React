@@ -13,23 +13,33 @@ function App() {
   const [image , setImage] = useState("");
   const [selectedPost,setSelectedPost] = useState(null);
 
-  //ทำทุกครั้งที่ Posts เปลี่ยน
-  useEffect(() => {    
-    if(posts.length > 0){
-      console.log("บันทุึกโพสต์ :", posts)
-      localStorage.setItem("posts" , JSON.stringify(posts)
-      );
-    }
-  }, [posts])
+  // //ทำทุกครั้งที่ Posts เปลี่ยน
+  // useEffect(() => {    
+  //   if(posts.length > 0){
+  //     console.log("บันทุึกโพสต์ :", posts)
+  //     localStorage.setItem("posts" , JSON.stringify(posts)
+  //     );
+  //   }
+  // }, [posts])
 
-  //ทำครั้งเดียวตอนเปิดหน้า
-  useEffect(() => {
-    const savedPosts = localStorage.getItem("posts");
+  // //ทำครั้งเดียวตอนเปิดหน้า
+  // useEffect(() => {
+  //   const savedPosts = localStorage.getItem("posts");
 
-    console.log("โหลดข้อมูล :", savedPosts)
-    if(savedPosts){
-      setPosts(JSON.parse(savedPosts));
-    }
+  //   console.log("โหลดข้อมูล :", savedPosts)
+  //   if(savedPosts){
+  //     setPosts(JSON.parse(savedPosts));
+  //   }
+  // }, []);
+
+  useEffect(() =>{
+    
+    fetch("http://localhost:5000/rooms")
+    .then(response => response.json())
+    .then(data => {
+      setPosts(data);
+    });
+
   }, []);
 
   function handleImageChange(event){
@@ -99,6 +109,21 @@ function App() {
   
     }
 
+    console.log("กำลังส่ง" , newPost);
+
+    fetch("http://localhost:5000/rooms",{
+      method: "POST",
+      headers: {
+        "Content-Type" : "application/json"
+      },
+      body: JSON.stringify(newPost)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+    });
+
+
     setPosts([...posts, newPost]);
     setTitle("");
     setPrice("");
@@ -107,10 +132,24 @@ function App() {
     setImage("");
   }
 
+  // function deletePost(id){
+  //   setPosts(
+  //     posts.filter(post => post.id !== id)
+  //   );
+  // }
+
   function deletePost(id){
-    setPosts(
-      posts.filter(post => post.id !== id)
-    );
+
+    fetch(`http://localhost:5000/rooms/${id}` , {
+      method: "DELETE"
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+
+      //filter เพราะต้องลบโพสที่แสดงอยู่หน้าบ้านด้วย
+      setPosts(posts.filter(post => post.id !== id));
+    })
   }
 
   function editPost(post){
