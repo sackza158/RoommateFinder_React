@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const fs = require("fs");
 
 const express = require("express");
@@ -7,6 +8,15 @@ console.log(__filename);
 const cors = require("cors");
 const app = express();
 
+mongoose.connect(
+  "mongodb://sackza158_db_user:Test123456@ac-b0rbp6w-shard-00-00.yuxpir9.mongodb.net:27017,ac-b0rbp6w-shard-00-01.yuxpir9.mongodb.net:27017,ac-b0rbp6w-shard-00-02.yuxpir9.mongodb.net:27017/roommatefinder?ssl=true&replicaSet=atlas-3wrzh7-shard-0&authSource=admin&appName=Cluster0"
+)
+.then(() => {
+  console.log("MongoDB Connected");
+})
+.catch((err) => {
+  console.error(err);
+});
 app.use(cors());
 app.use(express.json({
   limit: "10mb"
@@ -70,6 +80,32 @@ app.delete("/rooms/:id" , (req,res) => {
   res.json({
     message: "Delete Success"
   });
+
+});
+
+app.put("/rooms/:id" , (req, res) =>{
+
+  const id = Number(req.params.id);
+  const updateRoom = req.body;
+
+  rooms = rooms.map(room => {
+
+    if(room.id === id){
+      return updateRoom;
+    }
+
+    return room;
+
+  });
+
+  fs.writeFileSync(
+    "rooms.json",
+    JSON.stringify(rooms , null , 2)
+  );
+
+  res.json({
+    message : "Update Success"
+  })
 
 });
 

@@ -61,7 +61,7 @@ function App() {
 
   function addpost(){
 
-    if(title === "" || price === "" || description === "" || roomtype === ""){
+    if(title === "" || price === "" || description === "" || roomtype === "" || image === ""){
       return;
     }
 
@@ -82,22 +82,37 @@ function App() {
 
     if(editingId !== null){
 
-      setPosts(
-        posts.map(post => {
-          if(post.id === editingId){
-            return{
-              ...post,
-              title: title,
-              price: price,
-              description : description,
-              roomtype : roomtype,
-              image : image
-            };
-          }
+      const updatePost = {
+        id: editingId,
+        title: title,
+        price: price,
+        description: description,
+        roomtype: roomtype,
+        image: image
+      };
 
-          return post;
-        })  
-      );
+      fetch(`http://localhost:5000/rooms/${editingId}`,{
+        method: "PUT",
+        headers : {
+          "Content-Type" : "application/json"
+        },
+        body: JSON.stringify(updatePost)
+      })
+      .then(response => response.json())
+      .then(data => {
+
+        console.log(data);
+
+        setPosts(
+          posts.map(post =>{
+            if(post.id === editingId){
+              return updatePost;
+            }
+            
+            return post;
+          })
+        );
+      })
 
       setEditingId(null);
       setTitle("");
@@ -105,11 +120,12 @@ function App() {
       setDescription("");
       setRoomtype("");
       setImage("");
+
       return;
-  
+
     }
 
-    console.log("กำลังส่ง" , newPost);
+    console.log("กำลังส่ง" , newPost );
 
     fetch("http://localhost:5000/rooms",{
       method: "POST",
