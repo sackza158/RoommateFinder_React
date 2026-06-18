@@ -1,5 +1,13 @@
+
+const jwt = require("jsonwebtoken");
+const SECRET_KEY = "roommatefinder_secret";
+
+const bcrypt = require("bcrypt");
+
 const mongoose = require("mongoose");
-const fs = require("fs");
+const Room = require("./models/Room")
+const User = require("./models/User");
+
 
 const express = require("express");
 console.log(__filename);
@@ -22,92 +30,216 @@ app.use(express.json({
   limit: "10mb"
 }));
 
-//const rooms = [];
 
-let rooms = [];
+// let rooms = [];
 
-try{
-  const data = fs.readFileSync("rooms.json" , "utf8");
-  rooms = JSON.parse(data);
+// try{
+//   const data = fs.readFileSync("rooms.json" , "utf8");
+//   rooms = JSON.parse(data);
+// }
+
+// catch(error){
+//   console.log("โหลด room.json ไม่สำเร็จ")
+// }
+
+
+function verifyToken(req , res , next){
+    console.log(req.headers);
+
+    const authHeader = req.headers.authorization;
+
+    if(!authHeader){
+        return res.status(401).json({
+            message: "No token"
+        });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try{
+        const decoded = jwt.verify(
+            token,
+            SECRET_KEY
+        );
+
+        req.user = decoded;
+
+        next();
+
+    } catch(err){
+        return res.status(401).json({
+            message: "Invalid token"
+        });
+    }
+
 }
 
-catch(error){
-  console.log("โหลด room.json ไม่สำเร็จ")
-}
+app.get("/rooms",async (req, res) => {
+  try{
+    const rooms = await Room.find();
 
-app.get("/rooms", (req, res) => {
-  res.json(rooms);
+    res.json(rooms);
+   
+  } catch(error){
+
+    console.error(error);
+
+    res.status(500).json({
+      message: "Load Failed"
+    });
+
+  }
+
 });
 
-app.post("/rooms" , (req, res) =>{
-    const room = req.body;
+app.post("/rooms" , verifyToken,async (req, res) =>{
 
-    console.log("ได้รับข้อมูล",room);
+  try{
 
-    rooms.push(room);
+    const newRoom = new Room(req.body);
+    await newRoom.save();
 
-    fs.writeFileSync(
-      "rooms.json",
-      JSON.stringify(rooms , null , 2)
-    );
+    console.log("ได้รับข้อมูล",newRoom);
 
     res.json({
         message: "Room Added",
-        room: room
+        room: newRoom
     });
 
+  } catch(error){
+    
+    console.error(error);
+
+    res.status(500).json({
+      message: "Save Failed"
+    });
+  }
+
+
 });
 
-app.delete("/rooms/:id" , (req,res) => {
-  const id = Number(req.params.id);
+app.delete("/rooms/:id" , verifyToken, async (req,res) => {
 
-  console.log("ลบห้อง : " ,id);
+  try{
+    const id = req.params.id;
 
-  console.log("ก่อนลบ");
-  console.log(rooms);
+    await Room.findByIdAndDelete(id);
 
+    res.json({
+      message : "Delete Success"
+    });
 
-  rooms = rooms.filter(room => room.id !== id);
+  }catch(error){
+    console.error(error);
 
-  fs.writeFileSync(
-    "rooms.json",
-    JSON.stringify(rooms , null , 2)
-  );
+    res.status(500).json({
+      message : "Delete Failed"
+    });
 
-  console.log("หลังลบ");
-  console.log(rooms);
+  }
 
-  res.json({
-    message: "Delete Success"
+});
+
+app.put("/rooms/:id" , verifyToken, async (req, res) =>{
+
+  try{
+    const id = req.params.id;
+
+    const updateRoom = req.body;
+
+    await Room.findByIdAndUpdate(
+      id,
+      updateRoom
+    );
+
+    res.json({
+      message : "Update Success"
+    });
+
+  }catch(error){
+    console.error(error);
+
+    res.status(500).json({
+      message : "Update Failed"
+    });
+
+  }
+  
+});
+
+app.post("/register" , async (req, res) => {
+  try{
+
+    const {username , email , password } = req.body;
+
+    const hashedPassword = 
+      await bcrypt.hash(password,10);
+
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword
+    });
+
+    await newUser.save();
+
+    res.json({
+      message : "Register Success"
+    });
+  }catch(error){
+    console.error(error);
+
+    res.status(500).json({
+      message : "Register Failed"
+    });
+
+  }
+
+});
+
+app.post("/login" , async(req,res) => {
+
+  const {email , password } = req.body;
+
+  const user = await User.findOne({
+    email : email
   });
 
-});
+  if(!user){
+    return res.json({
+      massage : "User Not Found"
+    });
+  }
 
-app.put("/rooms/:id" , (req, res) =>{
+  const isMatch =
+    await bcrypt.compare(
+      password,
+      user.password
+    );
 
-  const id = Number(req.params.id);
-  const updateRoom = req.body;
+  if(!isMatch){
+    return res.json({
+      message : "Wrong Password"
+    })
+  }
 
-  rooms = rooms.map(room => {
-
-    if(room.id === id){
-      return updateRoom;
+  const token = jwt.sign(
+    {
+      userId : user._id,
+      email: user.email
+    },
+    SECRET_KEY,
+    {
+      expiresIn : "1d"
     }
-
-    return room;
-
-  });
-
-  fs.writeFileSync(
-    "rooms.json",
-    JSON.stringify(rooms , null , 2)
   );
 
   res.json({
-    message : "Update Success"
-  })
+    message : " Login Success ",
+    token : token
+  });
 
-});
+})
 
 
 app.listen(5000, () => {

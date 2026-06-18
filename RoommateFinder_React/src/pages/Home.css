@@ -1,0 +1,50 @@
+/* แถบเมนูด้านบน Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  alignItems: center;
+  padding: 15px 40px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-family: sans-serif;
+}
+
+.navbar-logo {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0f766e;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 12px;
+}
+
+/* ปุ่มต่าง ๆ ใน Navbar */
+.btn-login {
+  text-decoration: none;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.btn-register {
+  text-decoration: none;
+  color: #fff;
+  background-color: #2563eb;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.btn-logout {
+  color: #fff;
+  background-color: #dc2626;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}

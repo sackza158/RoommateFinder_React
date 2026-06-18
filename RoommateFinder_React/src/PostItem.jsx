@@ -20,7 +20,7 @@ function PostItem(props){
                 แก้ไข
             </button>
 
-            <button onClick={() => props.onDelete(props.post.id)}>
+            <button onClick={() => props.onDelete(props.post._id)}>
                 ลบ
             </button>
 
