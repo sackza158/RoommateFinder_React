@@ -6,6 +6,7 @@ import{
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Myrooms from "./pages/myrooms";
 
 
 function App() {
@@ -26,6 +27,11 @@ function App() {
           <Route
             path="/register"
             element={<Register/>}
+          />
+
+          <Route
+            path="/myrooms"
+            element={<Myrooms/>}
           />
           
         </Routes>

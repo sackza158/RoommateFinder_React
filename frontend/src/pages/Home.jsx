@@ -19,6 +19,8 @@ function Home() {
   const [selectedPost,setSelectedPost] = useState(null);
   const [isLogin , setIsLogin] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+
   //CheckLogin
   useEffect(() =>{
 
@@ -135,6 +137,7 @@ function Home() {
       setDescription("");
       setRoomtype("");
       setImage("");
+      setShowModal(false);
 
       return;
 
@@ -173,6 +176,7 @@ function Home() {
     setDescription("");
     setRoomtype("");
     setImage("");
+    setShowModal(false);
   }
 
   // function deletePost(id){
@@ -190,16 +194,31 @@ function Home() {
         Authorization : `Bearer : ${localStorage.getItem("token")}`
       }
     })
-    .then(response => response.json())
+    .then(response => {
+      if(!response.ok){
+        if(response == 401){
+          alert("กรุณาเข้าสู่ระบบก่อนลบโพสต์ !")
+        }
+        else{
+           alert("เกิดข้อผิดพลาดในการลบโพสต์!")
+        }
+
+        throw Error("Request failed with status  + response.status");
+      }
+        return response.json()
+      })
     .then(data => {
       console.log(data);
-
+      if(data.statusD){
       //filter เพราะต้องลบโพสที่แสดงอยู่หน้าบ้านด้วย
-      setPosts(posts.filter(post => post._id !== id));
+        setPosts(posts.filter(post => post._id !== id));
+      }
+
     })
   }
 
   function editPost(post){
+    setShowModal(true);
     setTitle(post.title);
     setPrice(post.price)
     setDescription(post.description);
@@ -227,6 +246,9 @@ function Home() {
     localStorage.removeItem(
       "token"
     );
+    localStorage.removeItem(
+      "userId"
+    );    
 
     setIsLogin(false);
     //เด้งไปหน้าHome
@@ -239,13 +261,29 @@ function Home() {
     <div>
       <nav className="navbar">
         <div className="navbar-logo">🏠 Roommate Finder</div>
-        <div classNmae="navbar-links">
+        <div className="navbar-links">
+         <input
+            className="search-input"
+            value={search} 
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="ค้นหาหอพัก"
+          />
           {
           isLogin
           ?
-          (<button onClick={logout} className="btn-logout">
-            Logout
-          </button>)
+          <>
+            <button onClick={() => setShowModal(true)} className="btn-logout">
+              + โพสต์
+            </button>
+
+            <Link to="/myrooms">
+              <button className="btn-login">ดูห้องของฉัน</button>
+            </Link>
+          
+            <button onClick={logout} className="btn-logout">
+              Logout
+            </button>
+          </>
           : (
             <>
               <Link to="/login">
@@ -261,44 +299,59 @@ function Home() {
       </nav>
 
       <div className="container">
-        <h1>
+
+        <h3>
           {posts.length === 0 ? "ยังไม่มีโพสต์" : "จำนวนโพสต์ทั้งหมด " + posts.length + " รายการ"  }
-        </h1>
-        <input
-          value={title} 
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="ชื่อหอพัก"
-        />
-        <input
-          value={price} 
-          onChange={(event) => setPrice(event.target.value)}
-          placeholder="ราคา"
-        />
-        <textarea
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="รายระเอียด"
-        />
+        </h3>
 
-        <select
-          value={roomtype}
-          onChange={(event) => setRoomtype(event.target.value)}
-        >
-        <option value="">เลือกประเภทห้อง</option>
-        <option value="หอพักรวม">หอพักรวม</option>
-        <option value="หอพักชาย">หอพักชาย</option>
-        <option value="หอพักหญิง">หอพักหญิง</option>
-        </select>
+      
+        {showModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h2 className="modal-font">กรอกรายละเอียดของโพสต์</h2>
+              <div className="post-form">
+                  <input
+                  value={title} 
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="ชื่อหอพัก"
+                  />
+                <input
+                  value={price} 
+                  onChange={(event) => setPrice(event.target.value)}
+                  placeholder="ราคา"
+                />
+                <textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="รายระเอียด"
+                />
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-        />
+                <select
+                  value={roomtype}
+                  onChange={(event) => setRoomtype(event.target.value)}
+                >
+                <option value="">เลือกประเภทห้อง</option>
+                <option value="หอพักรวม">หอพักรวม</option>
+                <option value="หอพักชาย">หอพักชาย</option>
+                <option value="หอพักหญิง">หอพักหญิง</option>
+                </select>
+              </div>
 
-        <button onClick={addpost}>
-          {editingId === null ? "เพิ่มโพสต์" : "บันทึกแก้ไข"}
-        </button>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+
+              <button onClick={addpost}>
+                {editingId === null ? "เพิ่มโพสต์" : "บันทึกแก้ไข"}
+              </button>
+              <button onClick={() => setShowModal(false)}>
+                ยกเลิก
+              </button>
+            </div>
+          </div>
+        )}
 
         <button onClick={sortPriceLower}>
           เรียงราคา จากต่ำไปสูง
@@ -308,13 +361,6 @@ function Home() {
           เรียงราคา จากสูงไปต่ำ
         </button>
       
-
-
-        <input
-          value={search} 
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="ค้นหาหอพัก"
-        />
 
 
 

@@ -1,9 +1,25 @@
 .post-item{
+  display: flex;
+  gap :20px;
+  align-items: flex-start;
+
   background-color: white;
   border-radius: 10px;
   padding: 15px;
-  margin-top: 10px;
+  margin-bottom: 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.room-image{
+  width: 220px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.post-content{
+  flex: 1;
 }
 
 body{
@@ -17,13 +33,17 @@ body{
   margin: auto;
 }
 
-input,textarea,select{
-  width: 100%;
-  padding: 7px;
-  box-sizing: border-box;
-  margin-top: 5px;
-  margin-bottom: 5px;
+
+
+.post-form input,
+.post-form textarea,
+.post-form select{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    box-sizing:border-box;
 }
+
 
 button{
   padding: 7px;
@@ -53,14 +73,6 @@ button:hover{
 
 }
 
-.room-image{
-  width: 100%;
-  max-height: 250px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-
 .modal-overlay{
   position: fixed;
   top: 0;
@@ -83,4 +95,15 @@ button:hover{
   border-radius: 10px;
   width: 500px;
   max-width: 90%;
+}
+
+.modal-font{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-input{
+    padding:10px;
+    box-sizing:border-box; 
 }

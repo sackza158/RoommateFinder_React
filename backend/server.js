@@ -96,7 +96,10 @@ app.post("/rooms" , verifyToken,async (req, res) =>{
 
   try{
 
-    const newRoom = new Room(req.body);
+    const newRoom = new Room({
+      ...req.body,
+      userId: req.user.userId
+    });
     await newRoom.save();
 
     console.log("ได้รับข้อมูล",newRoom);
@@ -121,12 +124,25 @@ app.post("/rooms" , verifyToken,async (req, res) =>{
 app.delete("/rooms/:id" , verifyToken, async (req,res) => {
 
   try{
-    const id = req.params.id;
+    const room = await Room.findByIdAndDelete(req.params.id);
 
-    await Room.findByIdAndDelete(id);
+    if(!room){
+      return res.status(404).json({
+        message: "Room not found"
+      });
+    }
+
+    if(room.userId.toString() !== req.user.userId){
+      return res.status(403).json({
+        message : "You are not the owner"
+      })
+    }
+
+    await Room.findByIdAndDelete(req.params.id);
 
     res.json({
-      message : "Delete Success"
+      message : "Delete Success",
+      statusD : statusD
     });
 
   }catch(error){
@@ -143,6 +159,12 @@ app.delete("/rooms/:id" , verifyToken, async (req,res) => {
 app.put("/rooms/:id" , verifyToken, async (req, res) =>{
 
   try{
+
+    if(room.userId.toString() !== req.user.userId){
+      return res.status(403).json({
+        message : "You are not the owner"
+      })
+    }
     const id = req.params.id;
 
     const updateRoom = req.body;
@@ -236,10 +258,25 @@ app.post("/login" , async(req,res) => {
 
   res.json({
     message : " Login Success ",
-    token : token
+    token : token,
+    userId : user._id
   });
 
 })
+
+
+app.get("/myrooms" , verifyToken , async (req, res) =>{
+  try{
+    const rooms = await Room.find({
+      userId: req.user.userId
+    });
+  }catch(error){
+    res.status(500).json({
+      message: "Load Failed"
+    })
+  }
+
+});
 
 
 app.listen(5000, () => {

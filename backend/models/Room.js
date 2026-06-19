@@ -5,7 +5,12 @@ const RoomSchema = new mongoose.Schema({
     price: Number,
     description : String,
     roomtype : String,
-    image : String
+    image : String,
+
+    userId: {
+        type : mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }
 
 });
 

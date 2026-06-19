@@ -22,7 +22,10 @@ function Login(){
             console.log(data);
             if(data.token){
                 localStorage.setItem("token" , data.token);
+                localStorage.setItem("userId" , data.userId)
                 alert("Login Success");
+
+                
 
                 //เด้งไปหน้าHome
                 window.location.href = "/";
@@ -35,6 +38,7 @@ function Login(){
 
     return(
         <div>
+            
             <h1>Login</h1>
 
             <input
